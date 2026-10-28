@@ -1,16 +1,16 @@
 {
   "name": "Fatumah's Closet",
-  "short_name": "Fatumah's Closet",
-  "description": "A handcrafted fashion dress-up game made with love. Style outfits across five dreamy worlds.",
+  "short_name": "Her Closet",
+  "description": "A little world styled by you. Six dreamy worlds, a whole wardrobe, and a jar of love notes.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#fff8f0",
-  "theme_color": "#fff8f0",
-  "lang": "en-US",
+  "background_color": "#fff8f2",
+  "theme_color": "#fff8f2",
+  "lang": "en",
   "dir": "ltr",
-  "categories": ["games", "entertainment", "lifestyle"],
+  "categories": ["lifestyle", "entertainment"],
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
@@ -20,7 +20,7 @@
   ],
   "shortcuts": [
     {
-      "name": "Open the Closet",
+      "name": "Dress up",
       "short_name": "Play",
       "description": "Jump straight into the styling room",
       "url": "./index.html"
