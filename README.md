@@ -104,12 +104,66 @@ No streaks to lose, no guilt, ever.
 your inbox/table if you connect Supabase.
 
 **Secrets** — type a name on any screen, tap the footer heart five times, or find the
-four-digit door in the menu. One hint is written into the letter itself.
+four-digit door in the menu. The letter itself gives one honest hint.
 
 **Save & share** — saves to the Look Book and exports a proper 1080×1350 (or 1080×1920 story)
 card with her name, the world, the score and a made-by-you line.
 
 ---
+
+## The door — a song is the key
+
+Before anything loads, she has to name the song that is yours. Four choices, one right answer:
+
+| Song | Artist | Right? |
+|---|---|---|
+| Please Please Please | Sabrina Carpenter | ✗ |
+| Rich Flex | Drake & 21 Savage | ✗ |
+| Knife Talk | Drake & 21 Savage | ✗ |
+| **These Walls** | **Dua Lipa** | **✓** |
+
+Nothing opens until she picks it — no letter, no closet, not one pixel of it.
+
+**Why it cannot be guessed or bypassed from the screen**
+
+- The correct answer is **not written anywhere** in the file. Only a fingerprint is stored
+  (`LOCK.digest`), and each tap is hashed and compared. Reading the source tells you nothing.
+- **Three wrong taps** and the door rests for 30 seconds. A fourth → 2 minutes. A fifth → 10 minutes.
+  The countdown survives a reload, and the buttons are genuinely disabled while it runs.
+- What gets saved on success is a **token**, not `true`. Hand-editing `localStorage` to
+  `{"gate":true}` does nothing — you would have to produce the exact token, which you can
+  only get by solving the door.
+- The screen state, navigation and rendering are all gated, so there is no hidden route in.
+
+The lock screen is deliberately its own world: a dim room, one record spinning, four album
+sleeves, and a line that is a hint rather than a giveaway —
+*“The one you play when you miss me.”*
+
+### Changing the song (one day she’ll have a new favourite)
+
+1. Edit the `songs` array in `index.html` — title, artist, and a short `key` for the artwork.
+2. Generate the new fingerprint. Run this in any terminal:
+
+```bash
+node -e "const h=s=>{let x=2166136261;const t=s+'kc-2026-fatumah-9f3a';for(let i=0;i<t.length;i++)x=Math.imul(x^t.charCodeAt(i),16777619);console.log(x>>>0)};h('these-walls')"
+```
+
+3. Paste the number into `LOCK.digest`. Keep the salt the same, or regenerate both.
+4. Change `LOCK.hint` to something only she would follow.
+5. Bump `CACHE` in `sw.js` and redeploy.
+
+Press **Lock the closet** in the ☰ menu to test it again without clearing your data.
+
+### Be honest with yourself about what this is
+
+This is a beautiful, genuinely strict *front door* for a browser app — it stops a curious
+sibling or a shared laptop in about eight seconds flat. It is **not** server-side
+authentication, and it cannot be: the code runs on her device, so someone technical with
+devtools can always get in. Two consequences worth knowing:
+
+- If you want real privacy, put the whole site behind **Netlify password protection**, and
+  keep her photos out of a public repo (they are visible by URL even if the page is locked).
+- Do not reuse this pattern for anything that actually holds secrets, money or health data.
 
 ## Connecting Supabase (so her notes reach you)
 
