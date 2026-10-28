@@ -607,6 +607,8 @@ footer.bot .heart-btn:hover{transform:scale(1.18) rotate(-6deg);background:none}
   position:relative;justify-self:end;transition:.2s
 }
 .song:hover:not(:disabled) .ring{border-color:var(--rose);box-shadow:0 0 0 4px #f7e2e8}
+.song.checking{pointer-events:none;border-color:#e8d3b6;background:linear-gradient(135deg,#fffdf6,#fbf3e4)}
+.song.checking .ring{border-color:#dcc38f;background:transparent;box-shadow:none;animation:pulseRing 1.1s ease-in-out infinite}
 .song.right{
   pointer-events:none;border-color:#e2c58a;background:linear-gradient(135deg,#fffdf3,#fdf2d9);
   box-shadow:0 0 0 2px #f4e3b8,0 18px 36px #c9a35e33
@@ -635,6 +637,7 @@ footer.bot .heart-btn:hover{transform:scale(1.18) rotate(-6deg);background:none}
 }
 @keyframes gateIn{from{opacity:0;transform:translateY(16px) scale(.985)}}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulseRing{50%{box-shadow:0 0 0 5px #e7c78944;border-color:#c9a35e}}
 @keyframes shake{
   10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}
   30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}
@@ -780,7 +783,10 @@ const CONFIG={
   ],
 
   /* backend (optional — see README + supabase/schema.sql) ---- */
-  supabase:{url:'',anonKey:''},
+  supabase:{
+    url:'https://nawwkhgsipmcjumbimpy.supabase.co',
+    anonKey:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5hd3draGdzaXBtY2p1bWJpbXB5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxNjA5MDEsImV4cCI6MjEwODczNjkwMX0.5dazpH29UN2y99q1KOCFytmRBKKKEGOu-mMdVqeXqLQ'
+  },
 
   /* preferences --------------------------------------------- */
   musicOnByDefault:false,
@@ -945,12 +951,54 @@ const songs=[
 ];
 const LOCK={
   salt:'kc-2026-fatumah-9f3a',
-  /* fingerprint of the one right answer. nothing else in here says which. */
+  /* offline fallback only: the real check happens in the database.
+     nothing in this file says which of the four songs is right. */
   digest:4282841718,
   /* wrong tries before the door rests, and for how long (seconds) */
   tiers:{3:30,4:120,5:600},
+  /* a session can never last longer than this, even if storage survives */
+  sessionMax:8*60*60*1000,      /* 8 hours */
+  /* and it locks itself after this long hidden */
+  idleLock:15*60*1000,          /* 15 minutes */
   hint:'The one you play when you miss me.'
 };
+
+/* ---- the session: dies with the tab, and cannot be forged ----------------
+   sessionStorage alone is not quite enough: Chrome's "restore tabs" and
+   the back/forward cache can bring a closed tab back with its storage
+   intact. So the page keeps a heartbeat while it is open. A restored tab
+   comes back with an old heartbeat and is locked on sight.            */
+const SKEY='closet-session';
+const HEARTBEAT=20000;      /* write a sign of life this often */
+const STALE=90000;          /* older than this at load = the tab was closed */
+
+function readSession(){
+  try{const raw=sessionStorage.getItem(SKEY);return raw?JSON.parse(raw):null}catch(e){return null}
+}
+function writeSession(){
+  try{sessionStorage.setItem(SKEY,JSON.stringify({t:GATE_TOKEN,at:Date.now()}))}catch(e){}
+}
+/* strict: used once, at load. an old heartbeat means this is a revived tab. */
+function sessionOnLoad(){
+  const s=readSession();
+  if(!s||s.t!==GATE_TOKEN)return false;
+  if(!Number.isFinite(s.at))return false;
+  if(Date.now()-s.at>STALE)return false;
+  if(Date.now()-s.at>LOCK.sessionMax)return false;
+  return true;
+}
+/* lenient: used while the page is alive */
+function sessionLive(){
+  const s=readSession();
+  if(!s||s.t!==GATE_TOKEN)return false;
+  if(!Number.isFinite(s.at))return false;
+  return Date.now()-s.at<=LOCK.sessionMax;
+}
+function openSession(){writeSession()}
+function closeSession(){
+  saved.gate=false;
+  try{sessionStorage.removeItem(SKEY)}catch(e){}
+}
 function fingerprint(v){
   let h=2166136261;const s=String(v)+LOCK.salt;
   for(let i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619);
@@ -1037,8 +1085,13 @@ let memory={};
 const KEY='fatumah-closet-v2';
 function load(){try{return JSON.parse(localStorage.getItem(KEY)||localStorage.getItem('closet-love-v1')||'{}')||{}}catch(e){return memory}}
 function persist(){
-  memory=copy(saved);
-  try{localStorage.setItem(KEY,JSON.stringify(saved))}catch(e){/* memory stays a complete playable fallback */}
+  /* the unlock flag is a runtime fact, never a stored one — writing it
+     to localStorage would only invite someone to edit it. it lives in
+     sessionStorage, and dies with the tab. */
+  const disk={...saved};
+  delete disk.gate;        /* lockTries / lockUntil DO persist: reloading must not reset the cooldown */
+  memory=copy(disk);
+  try{localStorage.setItem(KEY,JSON.stringify(disk))}catch(e){/* memory stays a complete playable fallback */}
 }
 const loaded=load();
 const num=(v,f=0)=>Number.isFinite(+v)?+v:f;
@@ -1048,7 +1101,8 @@ function dayDiff(a,b){return Math.round((new Date(b+'T00:00:00')-new Date(a+'T00
 const saved={
   /* the door: only the real token opens it, so a hand-edited
      localStorage entry of true does nothing at all */
-  gate:loaded.gate===GATE_TOKEN,
+  /* never read from localStorage: a stored "true" is worthless */
+  gate:sessionOnLoad(),
   lockTries:num(loaded.lockTries),
   lockUntil:num(loaded.lockUntil),
   seen:!!loaded.seen,
@@ -1149,6 +1203,14 @@ const SB=(()=>{
     },
     async remove(id){
       return req(`notes?id=eq.${encodeURIComponent(id)}`,{method:'DELETE'});
+    },
+    /* ask the database, not the browser, whether that is the song */
+    async unlock(attempt){
+      const res=await req('rpc/closet_unlock',{method:'POST',body:JSON.stringify({attempt})});
+      return res===true||res==='true';
+    },
+    async logAttempt(songId,ok){
+      try{await req('lock_attempts',{method:'POST',body:JSON.stringify({song_id:songId,ok})})}catch(e){}
     }
   };
 })();
@@ -2114,15 +2176,24 @@ function book(){
    ============================================================ */
 function render(){
   document.title=`${her}’s Closet`;
-  if(screen==='lock'||!saved.gate){screen='lock';renderLock();return}
+  if(screen==='lock'||!saved.gate||!sessionLive()){screen='lock';saved.gate=false;renderLock();return}
   if(screen==='letter'){renderLetter();return}
   app.innerHTML=header()
     +(screen==='home'?homeScreen():screen==='worlds'?worldsScreen():studio())
     +footer()
     +tabbar();
 }
+function lockNow(){
+  closeSession();
+  pendingCelebrate=false;
+  lastFocus=null;
+  close();
+  screen='lock';
+  render();
+  window.scrollTo(0,0);
+}
 function nav(next){
-  if(!saved.gate){screen='lock';render();return}
+  if(!saved.gate||!sessionLive()){lockNow();return}
   close();screen=next;render();window.scrollTo({top:0,behavior:reduced?'auto':'smooth'});
 }
 function switchWorld(n){
@@ -2200,7 +2271,9 @@ function renderLock(){
 
       <p class="gate-msg" id="gateMsg" aria-live="polite">${msg}</p>
       <p class="gate-hint">${left?'':'<span aria-hidden="true">♪</span> '+esc(LOCK.hint)}</p>
-      <p class="gate-foot">Three wrong ones and the door rests for a while.<br>Only ${esc(him)} and ${esc(her)} know which song it is.</p>
+      <p class="gate-foot">Three wrong ones and the door rests for a while.<br>
+        This door locks itself again the moment you close the tab.<br>
+        Only ${esc(him)} and ${esc(her)} know which song it is.</p>
     </div>
     <p class="gate-copy">${esc(her)}’s Closet · keep this one to yourself</p>
     </div>
@@ -2214,13 +2287,27 @@ function tickGate(){
   if(left<=0){saved.lockUntil=0;saved.lockTries=0;persist();renderLock();return}
   el.textContent=left;
 }
-function pickSong(id){
-  if(lockWaitLeft()>0)return;
-  if(fingerprint(id)===LOCK.digest){
-    saved.gate=GATE_TOKEN;
+let pickBusy=false;
+async function pickSong(id){
+  if(lockWaitLeft()>0||pickBusy)return;
+  const card=document.querySelector(`.song[data-id="${id}"]`);
+  pickBusy=true;
+  card?.classList.add('checking');
+  let ok=false,checked=false;
+  if(SB.on){
+    try{ok=await SB.unlock(id);checked=true}
+    catch(e){checked=false}         /* offline: fall through, never fail open */
+  }
+  if(!checked)ok=fingerprint(id)===LOCK.digest;
+  pickBusy=false;
+  card?.classList.remove('checking');
+
+  if(ok){
+    openSession();
+    saved.gate=true;
     saved.lockTries=0;saved.lockUntil=0;
     persist();
-    const card=document.querySelector(`.song[data-id="${id}"]`);
+    if(SB.on)SB.logAttempt(id,true);
     card?.classList.add('right');
     const m=document.getElementById('gateMsg');
     if(m)m.innerHTML='That one. Of course it is. ♡';
@@ -2238,7 +2325,7 @@ function pickSong(id){
     const wait=LOCK.tiers[saved.lockTries]||0;
     if(wait)saved.lockUntil=Date.now()+wait*1000;
     persist();
-    const card=document.querySelector(`.song[data-id="${id}"]`);
+    if(SB.on)SB.logAttempt(id,false);
     if(card&&!reduced){card.classList.add('wrong');setTimeout(()=>card.classList.remove('wrong'),600)}
     const m=document.getElementById('gateMsg');
     const wrong=[
@@ -2683,6 +2770,8 @@ document.addEventListener('click',e=>{
   if(!b)return;
   const a=b.dataset.act,n=Number(b.dataset.n),id=b.dataset.id,key=b.dataset.key;
 
+  const doorActions=new Set(['pick','overlay','close','dismiss']);
+  if(!doorActions.has(a)&&(!saved.gate||!sessionLive())){lockNow();return}
   if(a==='overlay'){if(e.target===b)close();return}
   if(a==='open'){letterOpen=true;letterIndex=0;renderLetter();tone('envelope');spark('heart')}
   else if(a==='skip'){letterIndex=letterText.length;updateLetter()}
@@ -2759,8 +2848,10 @@ document.addEventListener('click',e=>{
   }
   else if(a==='pick')pickSong(id);
   else if(a==='relock'){
-    saved.gate=false;saved.lockTries=0;saved.lockUntil=0;persist();
+    closeSession();
+    saved.lockTries=0;saved.lockUntil=0;persist();
     close();screen='lock';render();window.scrollTo(0,0);
+    toast('Locked. Same song opens it.',false);
   }
   else if(a==='serve')serve();
   else if(a==='another'){nav('worlds')}
@@ -2827,8 +2918,25 @@ document.addEventListener('keydown',e=>{
   }
 });
 
+/* ---- keep the session alive only while the page really is ---- */
+setInterval(()=>{
+  if(!document.hidden&&saved.gate&&sessionLive())writeSession();
+},HEARTBEAT);
+
+let hiddenAt=0;
+/* a restored tab (back/forward cache, or a browser that keeps tabs) */
+addEventListener('pageshow',e=>{
+  if(e.persisted&&(!sessionOnLoad()||!saved.gate))lockNow();
+});
+/* closing or leaving the tab: the token stops being refreshed, so the
+   next time this page is opened the heartbeat is stale and it locks. */
+addEventListener('pagehide',()=>{/* nothing to keep */});
+
 document.addEventListener('visibilitychange',()=>{
   document.body.classList.toggle('paused',document.hidden);
+  if(document.hidden){hiddenAt=Date.now()}
+  else if(hiddenAt&&Date.now()-hiddenAt>LOCK.idleLock){hiddenAt=0;lockNow();return}
+  else{hiddenAt=0;if(!saved.gate||!sessionLive())lockNow()}
   if(document.hidden){pausedAt=performance.now();audio?.suspend().catch(()=>{})}
   else{
     const gap=performance.now()-pausedAt;

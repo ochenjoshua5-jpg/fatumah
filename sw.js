@@ -1,7 +1,7 @@
 /* Fatumah's Closet — service worker
    Network-first for the page (so she always gets your newest letter),
    cache-first for art and fonts (so it works on a bad connection). */
-const CACHE='fatumahs-closet-v4';
+const CACHE='fatumahs-closet-v5';
 const ASSETS=[
   './','./index.html','./manifest.webmanifest','./favicon.svg',
   './icon-192.png','./icon-512.png','./icon-192-maskable.png','./icon-512-maskable.png',
