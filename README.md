@@ -124,77 +124,114 @@ Before anything loads, she has to name the song that is yours. Four choices, one
 
 Nothing opens until she picks it — no letter, no closet, not one pixel of it.
 
-**Why it cannot be guessed or bypassed from the screen**
+### It is always locked again when the tab closes
 
-- The correct answer is **not written anywhere** in the file. Only a fingerprint is stored
-  (`LOCK.digest`), and each tap is hashed and compared. Reading the source tells you nothing.
-- **Three wrong taps** and the door rests for 30 seconds. A fourth → 2 minutes. A fifth → 10 minutes.
-  The countdown survives a reload, and the buttons are genuinely disabled while it runs.
-- What gets saved on success is a **token**, not `true`. Hand-editing `localStorage` to
-  `{"gate":true}` does nothing — you would have to produce the exact token, which you can
-  only get by solving the door.
-- The screen state, navigation and rendering are all gated, so there is no hidden route in.
+The unlock is **never written to `localStorage`**. It lives in `sessionStorage`, which the
+browser destroys when the tab, window or installed app closes. On top of that:
 
-The lock screen is deliberately its own world: a dim room, one record spinning, four album
-sleeves, and a line that is a hint rather than a giveaway —
-*“The one you play when you miss me.”*
+| Situation | Behaviour |
+|---|---|
+| Close the tab, open the site again | **Locked.** Session is gone. |
+| New tab or new window | **Locked.** Sessions do not travel. |
+| Browser restores the tab (“continue where you left off”) | **Locked.** A heartbeat is written every 20 s while the page is alive; a revived tab comes back with a stale one (> 90 s) and locks on sight. |
+| Back/forward cache brings the page back | **Locked** (`pageshow` → re-check). |
+| Hidden for more than **15 minutes** | **Locked** on return. |
+| A session older than **8 hours** | **Locked**, even mid-use. |
+| ☰ → **Lock the closet** | **Locked immediately**, session wiped. |
+| A forged session token, or `localStorage {"gate":true}` | **Locked.** Neither is accepted. |
+| Someone taps buttons behind the door | **Nothing happens** — every action is refused without a live session. |
 
-### Changing the song (one day she’ll have a new favourite)
+The unlocked state is a runtime fact only. `persist()` explicitly strips it before writing
+anything to disk, so there is nothing stored to tamper with.
 
-1. Edit the `songs` array in `index.html` — title, artist, and a short `key` for the artwork.
-2. Generate the new fingerprint. Run this in any terminal:
+### Where the right answer is stored
 
-```bash
-node -e "const h=s=>{let x=2166136261;const t=s+'kc-2026-fatumah-9f3a';for(let i=0;i<t.length;i++)x=Math.imul(x^t.charCodeAt(i),16777619);console.log(x>>>0)};h('these-walls')"
+In a real database, not in the file: **Supabase project `nawwkhgsipmcjumbimpy`**.
+
+- `public.closet_keys` holds all four songs and their fingerprints. **RLS is on with no
+  policies, and `SELECT` is revoked**, so the browser role is refused outright
+  (`42501 permission denied for table closet_keys` — verified).
+- The only thing the browser can do is call `public.closet_unlock(attempt)`, a
+  `security definer` function that answers **true or false**. It never reveals the answer
+  or any row.
+- `public.lock_attempts` quietly records every try, so you can open the dashboard and see
+  if somebody was poking at the door. She cannot read it.
+- Exactly one row may be the answer — there is a partial unique index enforcing that, so you
+  cannot accidentally create two keys.
+
+So the password genuinely is stored, properly, server-side, and the browser can only ask a
+yes/no question about the song it already guessed.
+
+**If she is offline**, the check falls back to the fingerprint embedded in the file. That is
+still a verification, not a bypass — the wrong songs still fail — and it keeps the app
+usable on a plane or in a bad network.
+
+### The honest part
+
+This is a genuinely strict front door for a browser app. It stops a curious sibling, a
+shared laptop, or someone who picks up her phone in about eight seconds, and it re-arms
+itself every single time the tab closes.
+
+It is **not** server-side authentication and cannot be: the code runs on her device.
+Two things are worth knowing:
+
+- With only four choices, a determined person with devtools can call the function four times
+  and learn the answer. No client-side gate can prevent that. The lockout makes it slow and
+  obvious (and you will see it in `lock_attempts`), but it is not a secret from a hacker.
+- **If you want real privacy, use Netlify password protection**, and keep her photos out of
+  a public repo — any file in this repo is reachable by URL even when the page is locked.
+
+### Changing the song (one day she'll have a new favourite)
+
+In the Supabase SQL editor:
+
+```sql
+select public.fnv1a('new-song-id' || 'kc-2026-fatumah-9f3a');   -- 1. the number
+update public.closet_keys set is_answer = (song_id = 'new-song-id');  -- 2. the flag
 ```
 
-3. Paste the number into `LOCK.digest`. Keep the salt the same, or regenerate both.
-4. Change `LOCK.hint` to something only she would follow.
-5. Bump `CACHE` in `sw.js` and redeploy.
+Then in `index.html`: update the `songs` array, set `LOCK.digest` to the number from step 1,
+and change `LOCK.hint` to something only she would follow. Bump `CACHE` in `sw.js` and
+redeploy. Test with ☰ → **Lock the closet**.
 
-Press **Lock the closet** in the ☰ menu to test it again without clearing your data.
+### Door settings
 
-### Be honest with yourself about what this is
-
-This is a beautiful, genuinely strict *front door* for a browser app — it stops a curious
-sibling or a shared laptop in about eight seconds flat. It is **not** server-side
-authentication, and it cannot be: the code runs on her device, so someone technical with
-devtools can always get in. Two consequences worth knowing:
-
-- If you want real privacy, put the whole site behind **Netlify password protection**, and
-  keep her photos out of a public repo (they are visible by URL even if the page is locked).
-- Do not reuse this pattern for anything that actually holds secrets, money or health data.
-
-## Connecting Supabase (so her notes reach you)
-
-Without this, her notes still save on her phone — the app just cannot deliver them.
-With it, everything she writes lands in your Supabase table and appears in her journal
-with a real timestamp.
-
-1. Create a free project at supabase.com.
-2. Open **SQL Editor**, paste all of `supabase/schema.sql`, run it.
-3. Go to **Project Settings → API** and copy the **Project URL** and the **anon public** key.
-4. Paste them into `CONFIG.supabase`:
+At the top of the script:
 
 ```js
-supabase:{
-  url:'https://xxxxxxxxxxxx.supabase.co',
-  anonKey:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-}
+const LOCK={
+  salt:'kc-2026-fatumah-9f3a',
+  digest:4282841718,
+  tiers:{3:30,4:120,5:600},        // wrong try → cooldown in seconds (survives a reload)
+  sessionMax:8*60*60*1000,         // a session can never outlive this
+  idleLock:15*60*1000,             // lock after this long hidden
+  hint:'The one you play when you miss me.'
+};
 ```
 
-5. Deploy. The journal footer changes to “delivered straight to him”.
+## Connecting Supabase (already done)
 
-**Notes on safety:** the anon key is public by design; the table's row-level security is
-what protects you. The schema allows `select` and `insert` for `anon` and revokes
-`update`/`delete`, so nobody can rewrite or erase her words. If you want it stricter,
-swap the policy for an Edge Function that checks a shared secret — instructions are at the
-bottom of `schema.sql`. Optionally add a **Database Webhook** on `INSERT` to email yourself
-each note, and you will never miss one.
+The project is live: **`https://nawwkhgsipmcjumbimpy.supabase.co`**, and the URL plus the
+publishable anon key are already in `CONFIG.supabase`, so her notes and the door both work
+out of the box.
 
-The site works completely offline. Supabase is the only network call, and it fails soft.
+| What | Where | Who can touch it |
+|---|---|---|
+| The right song (hashed) | `closet_keys` | nobody but the function |
+| Yes/no check | `closet_unlock(text)` | anyone with the link, returns a boolean only |
+| Door attempts | `lock_attempts` | insert only; you read it in the dashboard |
+| Her notes | `notes` | she can read and add; **nobody can edit or delete** |
 
----
+**The anon key is public by design** — it ships in the HTML and that is normal for Supabase.
+Row-level security is the lock, not the key. Never paste the `service_role` or `sb_secret_…`
+key into this repo; it bypasses every policy.
+
+**Watching what she writes:** Supabase dashboard → Table editor → `notes`.
+Optionally add a **Database Webhook** (Database → Webhooks → INSERT on `notes`) to email
+yourself each one, and you will never miss a note.
+
+**If you ever rebuild the database from scratch**, run `supabase/schema.sql`. It is exactly
+what is deployed, it is safe to run twice, and it includes the one-answer-only index.
 
 ## Deploying
 
