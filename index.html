@@ -526,6 +526,141 @@ footer.bot .heart-btn:hover{transform:scale(1.18) rotate(-6deg);background:none}
 .drift{animation:floaty 9s ease-in-out infinite}
 .skeleton{background:linear-gradient(100deg,#f7ecec,#fff8f4,#f7ecec);background-size:200% 100%;animation:shimmer 1.6s linear infinite;border-radius:10px;color:transparent}
 
+/* ============================================================
+   THE DOOR — a dim room with one record on it
+   ============================================================ */
+.gate{
+  position:fixed;inset:0;z-index:95;overflow:auto;display:flex;
+  padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));
+  background:
+    radial-gradient(72% 52% at 50% -8%,#6b4353 0%,#422936 38%,#2a1a22 78%,#221620 100%);
+  color:#fff3ea;
+}
+.gate::before{
+  content:"";position:fixed;inset:0;pointer-events:none;
+  background:
+    radial-gradient(46% 30% at 50% 4%,#f2cd9a2b,transparent 72%),
+    radial-gradient(38% 26% at 10% 94%,#b8697f26,transparent 74%),
+    radial-gradient(30% 22% at 92% 20%,#e7c78914,transparent 74%);
+}
+.gate::after{
+  content:"";position:fixed;inset:0;pointer-events:none;opacity:.045;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.gate-inner{
+  margin:auto;width:min(548px,100%);display:grid;gap:16px;justify-items:center;
+}
+.gate-card{
+  position:relative;z-index:1;width:100%;
+  background:linear-gradient(180deg,#fffbf6,#fdf1eb);
+  border:1px solid #fff;border-radius:34px;
+  padding:clamp(22px,4.4vw,36px) clamp(18px,4vw,32px) clamp(18px,3.4vw,26px);
+  box-shadow:0 50px 120px #170a1099,0 0 0 1px #ffffff1f,0 2px 0 #fff inset;
+  color:var(--ink);text-align:center;
+  animation:gateIn .6s cubic-bezier(.2,.9,.3,1.05) both;
+}
+.gate-card::before{
+  content:"";position:absolute;inset:10px;border-radius:26px;pointer-events:none;
+  border:1px solid #e8d3c4;opacity:.5;
+}
+.vinyl{
+  width:96px;height:96px;margin:2px auto 14px;position:relative;
+  filter:drop-shadow(0 16px 26px #2a1a2255);
+}
+.vinyl svg{width:100%;height:100%;animation:spin 9s linear infinite}
+.vinyl::after{
+  content:"";position:absolute;inset:-9px;border-radius:50%;pointer-events:none;
+  box-shadow:inset 0 0 0 1px #ffffff14;
+}
+.gate-title{
+  font-family:var(--script);font-size:clamp(32px,7vw,44px);line-height:1.06;
+  margin:6px 0 8px;color:var(--plum);
+}
+.gate-sub{
+  font-size:13px;line-height:1.75;color:var(--muted);margin:0 auto 20px;max-width:30ch;
+}
+.songs{display:grid;gap:9px;text-align:left}
+.song{
+  display:grid;grid-template-columns:52px 1fr 22px;align-items:center;gap:13px;
+  width:100%;padding:9px 13px 9px 9px;min-height:64px;border-radius:19px;
+  background:#fffdf9;border:1px solid #f0dcd4;box-shadow:0 2px 8px #b4868f12;
+  transition:transform .18s ease,box-shadow .22s,border-color .22s,background .22s;
+}
+.song:hover:not(:disabled){
+  transform:translateY(-2px);border-color:#e6c8c0;background:#fff;
+  box-shadow:0 14px 26px #b4868f1f
+}
+.song:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(.35)}
+.song .art{
+  width:52px;height:52px;border-radius:13px;overflow:hidden;display:block;
+  box-shadow:0 6px 14px #6b435233;flex-shrink:0
+}
+.song .art svg{width:100%;height:100%;display:block}
+.song .meta{display:grid;gap:1px;min-width:0}
+.song .meta b{
+  font-size:13.5px;font-weight:600;color:#3e2a31;letter-spacing:.1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.song .meta span{font-size:10.5px;color:var(--faint);letter-spacing:.03em}
+.song .ring{
+  width:19px;height:19px;border-radius:50%;border:1.6px solid #dfc7c0;
+  position:relative;justify-self:end;transition:.2s
+}
+.song:hover:not(:disabled) .ring{border-color:var(--rose);box-shadow:0 0 0 4px #f7e2e8}
+.song.right{
+  pointer-events:none;border-color:#e2c58a;background:linear-gradient(135deg,#fffdf3,#fdf2d9);
+  box-shadow:0 0 0 2px #f4e3b8,0 18px 36px #c9a35e33
+}
+.song.right .ring{border-color:#c9a35e;background:#e7c789;box-shadow:inset 0 0 0 4px #fffaf0}
+.song.right .ring::after{
+  content:"✓";position:absolute;inset:0;display:grid;place-items:center;font-size:11px;color:#7a5a2b
+}
+.song.wrong{animation:shake .5s cubic-bezier(.36,.07,.19,.97) both;border-color:#e6a9b2;background:#fdf0f1}
+.song.wrong .ring{border-color:#d98fa5;background:#f7dbe2}
+.gate-msg{
+  font-family:var(--hand);font-size:20px;line-height:1.4;color:#6d4a54;
+  margin:16px 0 2px;min-height:30px;
+}
+.gate-msg b{font-weight:600;color:var(--rose-dark);font-variant-numeric:tabular-nums}
+.gate-hint{
+  font-size:11px;color:var(--faint);letter-spacing:.05em;margin:2px 0 0;min-height:16px
+}
+.gate-foot{
+  font-size:9.5px;line-height:1.7;color:#b39aa1;margin:16px 0 0;
+  padding-top:13px;border-top:1px solid #f2e2dc;letter-spacing:.02em
+}
+.gate-copy{
+  position:relative;z-index:1;margin:0;font-size:9.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:#c8a9b1;text-align:center
+}
+@keyframes gateIn{from{opacity:0;transform:translateY(16px) scale(.985)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shake{
+  10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}
+  30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}
+}
+@media(max-height:700px){
+  .vinyl{width:64px;height:64px;margin-bottom:8px}
+  .gate-title{font-size:30px;margin:2px 0 4px}
+  .gate-sub{margin-bottom:12px;font-size:12px}
+  .song{min-height:54px;padding:7px 11px 7px 7px;border-radius:16px}
+  .song .art{width:44px;height:44px;border-radius:11px}
+  .gate-msg{margin-top:10px;font-size:18px}
+  .gate-foot{margin-top:10px;padding-top:9px}
+}
+@media(max-width:420px){
+  .song{grid-template-columns:46px 1fr 20px;gap:11px;padding:8px 11px 8px 8px;min-height:58px}
+  .song .art{width:46px;height:46px;border-radius:12px}
+  .song .meta b{font-size:12.5px}
+  .vinyl{width:80px;height:80px}
+  .gate-msg{font-size:18px}
+}
+@media(prefers-reduced-motion:reduce){
+  .vinyl svg{animation:none}
+  .gate-card{animation:none}
+  .song.wrong{animation:none;border-color:#e6a9b2}
+}
+
 /* ---------- animations ---------- */
 @keyframes shimmer{50%{background-position:100% 50%}}
 @keyframes floaty{50%{transform:translateY(-9px) rotate(.6deg)}}
@@ -603,7 +738,7 @@ footer.bot .heart-btn:hover{transform:scale(1.18) rotate(-6deg);background:none}
 </head>
 <body>
 <a class="sr" href="#app">Skip to content</a>
-<main id="app"></main><div id="modal"></div><div id="notices" aria-live="polite"></div><canvas id="fx" aria-hidden="true"></canvas>
+<main id="app"></main><div id="modal"></div><noscript><p style="padding:40px 24px;text-align:center;font:15px/1.8 Poppins,sans-serif;color:#8a6f77">This closet needs JavaScript to open — just like the real one needs a key.</p></noscript><div id="notices" aria-live="polite"></div><canvas id="fx" aria-hidden="true"></canvas>
 <script>
 (()=>{
 'use strict';
@@ -797,6 +932,64 @@ const envelopes={
     text:`You found the last one.\n\nSo here it is, the thing I actually wanted to say, underneath all the ribbons and the sparkle and the code:\n\nI built this because I am not always good at saying things out loud, and because I wanted to give you something that keeps giving you the words even when I am not there to say them.\n\nYou are not a project. You are the reason for it.\n\nThank you for playing. Thank you for being patient with me. Thank you for being exactly who you are, on the good days and the heavy ones.\n\nI love you. Not as a nice line at the end of a website. As the whole reason there is a website.\n\nCheck the jar again tomorrow. I will always leave you something.\n\n${full} \u{1F90D}`}
 };
 
+/* ============================================================
+   THE DOOR — one song opens it, and only one.
+   The right answer is never written down in this file.
+   Only a fingerprint of it is. (See LOCK below.)
+   ============================================================ */
+const songs=[
+  {id:'please-please-please',title:'Please Please Please',artist:'Sabrina Carpenter',year:'2024',key:'ppp'},
+  {id:'rich-flex',title:'Rich Flex',artist:'Drake & 21 Savage',year:'2022',key:'flex'},
+  {id:'knife-talk',title:'Knife Talk',artist:'Drake & 21 Savage',year:'2021',key:'knife'},
+  {id:'these-walls',title:'These Walls',artist:'Dua Lipa',year:'2024',key:'walls'}
+];
+const LOCK={
+  salt:'kc-2026-fatumah-9f3a',
+  /* fingerprint of the one right answer. nothing else in here says which. */
+  digest:4282841718,
+  /* wrong tries before the door rests, and for how long (seconds) */
+  tiers:{3:30,4:120,5:600},
+  hint:'The one you play when you miss me.'
+};
+function fingerprint(v){
+  let h=2166136261;const s=String(v)+LOCK.salt;
+  for(let i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619);
+  return h>>>0;
+}
+/* this is what "unlocked" is stored as — so typing gate:true does nothing */
+const GATE_TOKEN=fingerprint('unlocked:');
+
+function songArt(key){
+  const frame='<rect width="96" height="96" rx="14" fill="url(#A)"/>';
+  const art={
+    ppp:`<defs><linearGradient id="A" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#cfe3f4"/><stop offset="1" stop-color="#f6d3e0"/></linearGradient></defs>${frame}
+      <circle cx="48" cy="42" r="19" fill="#fdf4f7" opacity=".85"/>
+      <path d="M40 44q8-9 16 0q-8 4-16 0Z" fill="#c0392b"/>
+      <path d="M40 44q8-5 16 0" fill="none" stroke="#8e2b21" stroke-width="1.4"/>
+      <path d="M30 66q18 8 36 0" fill="none" stroke="#e8a7bd" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="70" cy="26" r="2.4" fill="#fff"/><circle cx="28" cy="58" r="1.8" fill="#fff"/>`,
+    flex:`<defs><linearGradient id="A" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2b2244"/><stop offset="1" stop-color="#5b2f63"/></linearGradient></defs>${frame}
+      <path d="M48 20l16 20-16 34-16-34Z" fill="#d9c2f0" opacity=".92"/>
+      <path d="M48 20l16 20-16 10-16-10Z" fill="#f3e6ff"/>
+      <path d="M32 40h32" stroke="#8b6bb0" stroke-width="1.2"/>
+      <circle cx="72" cy="70" r="3" fill="#f0d68a"/><circle cx="24" cy="30" r="2" fill="#f0d68a"/>`,
+    knife:`<defs><linearGradient id="A" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22232b"/><stop offset="1" stop-color="#4a4f5c"/></linearGradient></defs>${frame}
+      <path d="M26 70L66 26l6 6L34 76Z" fill="#e8ecf2"/>
+      <path d="M26 70L66 26l3 3L31 73Z" fill="#b9c2cf"/>
+      <path d="M24 76l10-2-4-6Z" fill="#8d5a3a"/>
+      <path d="M70 20l6 6" stroke="#f0d68a" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="30" cy="34" r="1.8" fill="#9aa4b4"/>`,
+    walls:`<defs><linearGradient id="A" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3c9a2"/><stop offset="1" stop-color="#d98fa5"/></linearGradient></defs>${frame}
+      <rect x="20" y="18" width="56" height="60" rx="6" fill="#fff6e8" opacity=".55"/>
+      <rect x="26" y="24" width="44" height="22" rx="3" fill="#f7b06a"/>
+      <rect x="26" y="24" width="44" height="22" rx="3" fill="none" stroke="#c98a5a" stroke-width="1.4"/>
+      <path d="M26 52h44M26 60h44" stroke="#e3b48c" stroke-width="1.6"/>
+      <path d="M48 24v22M26 35h44" stroke="#c98a5a" stroke-width="1.2"/>
+      <circle cx="72" cy="66" r="7" fill="#e8c07a" opacity=".8"/>`
+  };
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" aria-hidden="true">${art[key]||art.walls}</svg>`;
+}
+
 const messages=[
   `Psst... that colour suits you. \u2014 ${him.charAt(0)} \u{1F495}`,
   'Fun fact: this whole world is named after the coolest person I know.',
@@ -853,6 +1046,11 @@ function todayKey(){const d=new Date();return `${d.getFullYear()}-${d.getMonth()
 function dayDiff(a,b){return Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/86400000)}
 
 const saved={
+  /* the door: only the real token opens it, so a hand-edited
+     localStorage entry of true does nothing at all */
+  gate:loaded.gate===GATE_TOKEN,
+  lockTries:num(loaded.lockTries),
+  lockUntil:num(loaded.lockUntil),
   seen:!!loaded.seen,
   sound:typeof loaded.sound==='boolean'?loaded.sound:!!CONFIG.musicOnByDefault,
   count:num(loaded.count),
@@ -970,7 +1168,7 @@ function fresh(){
 }
 let look=fresh(),
     world=0,
-    screen=saved.seen?'home':'letter',
+    screen=saved.gate?(saved.seen?'home':'letter'):'lock',
     category='top',
     filter='current',
     history=[],
@@ -1684,7 +1882,8 @@ function menu(){
     ['badges','The sticker book',`${saved.badges.length}/${achievements.length}`],
     ['replay','Read the letter again',''],
     ['mirror','The mirror','her look'],
-    ['vault','A locked little door','for the curious']
+    ['vault','A locked little door','for the curious'],
+    ['relock','Lock the closet','the song again']
   ];
   dialog('A little more magic',`<div class="stack">
     ${lines.map(([a,t,s])=>`<button data-act="${a}" style="display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left"><span>${esc(t)}</span><span class="small muted">${esc(s)}</span></button>`).join('')}
@@ -1915,6 +2114,7 @@ function book(){
    ============================================================ */
 function render(){
   document.title=`${her}’s Closet`;
+  if(screen==='lock'||!saved.gate){screen='lock';renderLock();return}
   if(screen==='letter'){renderLetter();return}
   app.innerHTML=header()
     +(screen==='home'?homeScreen():screen==='worlds'?worldsScreen():studio())
@@ -1922,6 +2122,7 @@ function render(){
     +tabbar();
 }
 function nav(next){
+  if(!saved.gate){screen='lock';render();return}
   close();screen=next;render();window.scrollTo({top:0,behavior:reduced?'auto':'smooth'});
 }
 function switchWorld(n){
@@ -1950,6 +2151,107 @@ Welcome to your closet, ${pet}. It was always yours.
 
 P.S. There are things hidden in here. Type a name. Tap the heart too many times. You will find them.`;
 }
+/* ============================================================
+   THE DOOR
+   ============================================================ */
+function lockWaitLeft(){return Math.max(0,Math.ceil(((saved.lockUntil||0)-Date.now())/1000))}
+function renderLock(){
+  const left=lockWaitLeft();
+  const tries=saved.lockTries||0;
+  const msg=left?`The door is resting. Try again in <b id="gateWait">${left}</b> second${left===1?'':'s'}.`
+    :tries>=3?'One more wrong one and it will rest a while. Take your time.'
+    :'Four songs. Only one of them is yours.';
+  app.innerHTML=`<section class="gate">
+    <div class="gate-inner">
+    <div class="gate-card">
+      <div class="vinyl" aria-hidden="true">
+        <svg viewBox="0 0 120 120">
+          <defs>
+            <radialGradient id="vg" cx=".38" cy=".32" r=".8">
+              <stop offset="0" stop-color="#4a3a42"/><stop offset=".55" stop-color="#221820"/><stop offset="1" stop-color="#141017"/>
+            </radialGradient>
+            <linearGradient id="vl" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#f0d9a8"/><stop offset=".5" stop-color="#d9a86a"/><stop offset="1" stop-color="#b8697f"/>
+            </linearGradient>
+          </defs>
+          <circle cx="60" cy="60" r="57" fill="url(#vg)"/>
+          <g fill="none" stroke="#ffffff14" stroke-width=".7">
+            <circle cx="60" cy="60" r="50"/><circle cx="60" cy="60" r="44"/>
+            <circle cx="60" cy="60" r="38"/><circle cx="60" cy="60" r="32"/>
+            <circle cx="60" cy="60" r="26"/><circle cx="60" cy="60" r="20"/>
+          </g>
+          <path d="M60 8a52 52 0 0 1 36 15L60 60Z" fill="#ffffff0d"/>
+          <circle cx="60" cy="60" r="15" fill="url(#vl)"/>
+          <circle cx="60" cy="60" r="2.6" fill="#3a2530"/>
+        </svg>
+      </div>
+
+      <span class="eyebrow">A private closet</span>
+      <h1 class="gate-title">Before you come in</h1>
+      <p class="gate-sub">Every closet has a key. Yours is a song.<br>Pick the one that is ours.</p>
+
+      <div class="songs" role="group" aria-label="Choose the song that unlocks the closet">
+        ${songs.map(x=>`<button class="song" data-act="pick" data-id="${x.id}" ${left?'disabled aria-disabled="true"':''} aria-label="${esc(x.title)} by ${esc(x.artist)}">
+          <span class="art">${songArt(x.key)}</span>
+          <span class="meta"><b>${esc(x.title)}</b><span>${esc(x.artist)}</span></span>
+          <span class="ring" aria-hidden="true"></span>
+        </button>`).join('')}
+      </div>
+
+      <p class="gate-msg" id="gateMsg" aria-live="polite">${msg}</p>
+      <p class="gate-hint">${left?'':'<span aria-hidden="true">♪</span> '+esc(LOCK.hint)}</p>
+      <p class="gate-foot">Three wrong ones and the door rests for a while.<br>Only ${esc(him)} and ${esc(her)} know which song it is.</p>
+    </div>
+    <p class="gate-copy">${esc(her)}’s Closet · keep this one to yourself</p>
+    </div>
+  </section>`;
+  if(left){tickGate()}
+}
+function tickGate(){
+  const el=document.getElementById('gateWait');
+  if(!el)return;
+  const left=lockWaitLeft();
+  if(left<=0){saved.lockUntil=0;saved.lockTries=0;persist();renderLock();return}
+  el.textContent=left;
+}
+function pickSong(id){
+  if(lockWaitLeft()>0)return;
+  if(fingerprint(id)===LOCK.digest){
+    saved.gate=GATE_TOKEN;
+    saved.lockTries=0;saved.lockUntil=0;
+    persist();
+    const card=document.querySelector(`.song[data-id="${id}"]`);
+    card?.classList.add('right');
+    const m=document.getElementById('gateMsg');
+    if(m)m.innerHTML='That one. Of course it is. ♡';
+    spark('confetti');tone('fanfare');
+    setTimeout(()=>{
+      close();
+      screen=saved.seen?'home':'letter';
+      letterOpen=false;letterIndex=0;
+      render();
+      window.scrollTo(0,0);
+      toast(`Welcome in, ${pet}. The closet missed you.`,false);
+    },1150);
+  }else{
+    saved.lockTries=(saved.lockTries||0)+1;
+    const wait=LOCK.tiers[saved.lockTries]||0;
+    if(wait)saved.lockUntil=Date.now()+wait*1000;
+    persist();
+    const card=document.querySelector(`.song[data-id="${id}"]`);
+    if(card&&!reduced){card.classList.add('wrong');setTimeout(()=>card.classList.remove('wrong'),600)}
+    const m=document.getElementById('gateMsg');
+    const wrong=[
+      'Not that one. Try again — you know it.',
+      'No. Think about the one you play when you miss me.',
+      'Still not it. One more and the door rests.'
+    ];
+    if(m&&!wait)m.textContent=wrong[Math.min(saved.lockTries-1,wrong.length-1)];
+    tone('click');
+    if(wait)setTimeout(renderLock,650);
+  }
+}
+
 function renderLetter(){
   letterText=letterCopy();
   app.innerHTML=`<section class="letter-scene">
@@ -2255,6 +2557,8 @@ function frame(t){
     else{cx.beginPath();cx.moveTo(0,-p.size);cx.lineTo(2,0);cx.lineTo(0,p.size);cx.lineTo(-2,0);cx.fill()}
     cx.restore();
   }
+  if(screen==='lock'&&saved.lockUntil&&Date.now()>=saved.lockUntil){saved.lockUntil=0;saved.lockTries=0;persist();renderLock()}
+  else if(screen==='lock'&&saved.lockUntil)tickGate();
   if(screen==='letter'&&letterOpen&&letterIndex<letterText.length){
     letterIndex=reduced?letterText.length:Math.min(letterText.length,Math.floor((t-typeStart)/20));
     updateLetter();
@@ -2453,6 +2757,11 @@ document.addEventListener('click',e=>{
     change(()=>look.face={...look.face,...presets[id]});
     toast('Done. Beautiful.');
   }
+  else if(a==='pick')pickSong(id);
+  else if(a==='relock'){
+    saved.gate=false;saved.lockTries=0;saved.lockUntil=0;persist();
+    close();screen='lock';render();window.scrollTo(0,0);
+  }
   else if(a==='serve')serve();
   else if(a==='another'){nav('worlds')}
   else if(a==='save')exportLook();
@@ -2501,6 +2810,7 @@ document.addEventListener('change',e=>{
 });
 
 document.addEventListener('keydown',e=>{
+  if(screen==='lock'&&!saved.gate){if(e.key==='Escape')return}
   if(e.key==='Escape'&&modal.innerHTML){close();return}
   if(e.key==='Tab'&&modal.innerHTML){
     const f=[...modal.querySelectorAll('button,input,select,textarea,[tabindex="0"]')].filter(el=>!el.disabled);
