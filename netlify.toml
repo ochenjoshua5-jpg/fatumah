@@ -8,6 +8,8 @@
     X-Frame-Options = "SAMEORIGIN"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+    # this is a private gift, not a search result
+    X-Robots-Tag = "noindex, nofollow, noarchive"
 
 [[headers]]
   for = "/manifest.webmanifest"
@@ -23,4 +25,10 @@
 [[headers]]
   for = "/index.html"
   [headers.values]
+    # must revalidate, so a new letter reaches her phone
     Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/og-image.png"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"

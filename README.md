@@ -1,26 +1,200 @@
-# Fatumah's Closet 💕
+# Fatumah’s Closet ♡
 
-A handcrafted fashion dress-up game — made with love.
+A little world, styled by her. Six dreamy worlds, a full wardrobe, a jar of love notes,
+a wall of memories, and a place to write back — made by hand, with a very full heart.
 
 **Live:** https://fatumahzcloset.netlify.app/
+**Privacy:** not indexed (noindex + X-Robots-Tag). It is a private gift, not a search result.
 
-## Play
-Open `index.html` in any modern browser, or visit the deployed URL.
+---
 
-## Features
-- 5 fashion worlds (Coquette Cloud, Y2K Rewind, Downtown Girl, Angelcore Heaven, Clean Girl Streetwear)
-- Makeup, hair, skin tone & eye color customization
-- Glam Score with harmony & cohesion analysis
-- Love Notes jar unlocked by playing
-- Look Book to save & re-wear outfits
-- Offline support via Service Worker (PWA)
-- Full mobile / iOS / Android home screen support
+## What is in here
+
+| File / folder | What it is |
+|---|---|
+| `index.html` | The whole game. Single file, no build step, no dependencies. |
+| `sw.js` | Service worker — network-first for the page (so new letters always arrive), cache-first for art. |
+| `manifest.webmanifest` | Makes it installable on her home screen. |
+| `netlify.toml` | Headers, caching, and the `noindex` rule. |
+| `og-image.png` + icons | The link preview card and home-screen icons. **These were missing before — the WhatsApp preview used to be blank.** |
+| `voice/` | Drop your voice note here (see `voice/README.md`). |
+| `moments/` | Drop your photos here (see `moments/README.md`). |
+| `supabase/schema.sql` | One-time setup so her notes reach you. |
+| `UPGRADE-PLAN.md` | The original review: what was broken, and the 15 upgrades. Everything in it is now built. |
+
+---
+
+## The one thing you should edit
+
+Everything personal lives in `CONFIG` at the top of the `<script>` in `index.html`.
+Nothing else needs touching.
+
+```js
+const CONFIG={
+  herName:'Fatumah',
+  hisName:'Joshua',
+  hisFullName:'Joshua Ochen',
+  herInitial:'F',
+  nickname:'',            // ← what you actually call her. blank = her name
+
+  skinTone:'#75452f',
+  hairStyle:'box braids',
+  hairColor:'#201a1b',
+  favoriteColors:['#FFB6C1','#E6CCFF'],
+
+  specialDate:'',         // ← 'YYYY-MM-DD' → powers "Day 214 with you"
+  birthday:'',            // ← 'MM-DD' → unlocks her birthday letter
+  insideJokes:[],         // ← up to 5 lines. they appear as gentle toasts
+  extraLoveNote:'',       // ← one more note in the jar
+
+  voiceNote:'',           // ← './voice/for-her.mp3'
+  whatsapp:'',            // ← your number, digits only: '2567XXXXXXXX'
+  moments:[...],          // ← photos + captions
+
+  supabase:{url:'',anonKey:''},   // ← optional, see below
+  musicOnByDefault:false,
+  modestDefault:false
+};
+```
+
+Fill `nickname`, `specialDate`, `birthday`, `insideJokes`, `extraLoveNote` first —
+those five empty strings were doing nothing before, and they are the difference
+between "a website" and "a website for her".
+
+---
+
+## What she can do
+
+**Six worlds** — Coquette Cloud, Y2K Rewind, Downtown Girl, Angelcore Heaven,
+Clean Girl Streetwear and **Kampala Muse** (gomesi, kitenge, abaya, gele, silk headwrap,
+soft hijab, kitenge maxi, Ankara kimono, cowrie gold).
+
+**Her, not a template** — 10 skin tones, 14 hairstyles (box braids, knotless braids,
+passion twists, cornrows, afro, bantu knots, headwrap, silk press, bob, ponytail, space buns,
+waves, pixie, low bun), 12 hair colours, 6 eye colours, makeup, lashes, glitter, gems,
+and a soft/quiet face toggle.
+
+**Makeup presets** — Everyday, Soft Glam, Golden Hour, one tap each.
+
+**Modest wardrobe** — a toggle that hides the shorter, sheerer pieces. Nothing is deleted,
+and she can turn it off whenever. Off by default; set `modestDefault:true` if it should start on.
+
+**The Glam Score** — completeness, world cohesion, accessories, harmony, plus a hidden
+*Fate* number that is derived from a hash of the look. Same look = same score, forever,
+on any phone. That means you two can style an identical outfit and get an identical
+number, like a shared secret.
+
+**His heart %** — a warm, generous number. It is never a test of anything real.
+
+**The love notes jar** — 16 sealed notes that open every 3 served looks, plus:
+
+- **Open when it is a heavy day** — always available, no unlocking, no dressing up
+- **Open when you miss me** — always available
+- **Open on your birthday** — appears only on the day you set
+- **Open when you have seen everything** — for the very end
+
+**A note a day** — 48 short notes, date-seeded, changes at midnight, never repeats in a month.
+No streaks to lose, no guilt, ever.
+
+**Our moments** — a polaroid wall with soft illustrations now, real photos when you add them.
+
+**A sticker book** — 12 little wins. Nothing lost, nothing timed, nothing to fail.
+
+**Write to me** — she can leave you a note. Saved on her phone always, and delivered to
+your inbox/table if you connect Supabase.
+
+**Secrets** — type a name on any screen, tap the footer heart five times, or find the
+four-digit door in the menu. One hint is written into the letter itself.
+
+**Save & share** — saves to the Look Book and exports a proper 1080×1350 (or 1080×1920 story)
+card with her name, the world, the score and a made-by-you line.
+
+---
+
+## Connecting Supabase (so her notes reach you)
+
+Without this, her notes still save on her phone — the app just cannot deliver them.
+With it, everything she writes lands in your Supabase table and appears in her journal
+with a real timestamp.
+
+1. Create a free project at supabase.com.
+2. Open **SQL Editor**, paste all of `supabase/schema.sql`, run it.
+3. Go to **Project Settings → API** and copy the **Project URL** and the **anon public** key.
+4. Paste them into `CONFIG.supabase`:
+
+```js
+supabase:{
+  url:'https://xxxxxxxxxxxx.supabase.co',
+  anonKey:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+}
+```
+
+5. Deploy. The journal footer changes to “delivered straight to him”.
+
+**Notes on safety:** the anon key is public by design; the table's row-level security is
+what protects you. The schema allows `select` and `insert` for `anon` and revokes
+`update`/`delete`, so nobody can rewrite or erase her words. If you want it stricter,
+swap the policy for an Edge Function that checks a shared secret — instructions are at the
+bottom of `schema.sql`. Optionally add a **Database Webhook** on `INSERT` to email yourself
+each note, and you will never miss one.
+
+The site works completely offline. Supabase is the only network call, and it fails soft.
+
+---
+
+## Deploying
+
+Static hosting — Netlify, Vercel, GitHub Pages, anything.
+
+```
+publish directory: .        (no build command)
+```
+
+If you are on Netlify and connected to this repo, pushing to `main` deploys.
+
+**Every time you change anything, bump the cache name in `sw.js`:**
+
+```js
+const CACHE='fatumahs-closet-v4';   // v3 → v4 → v5 …
+```
+
+Otherwise her phone keeps serving the old version and thinks you stopped caring.
+
+---
+
+## Before you send it to her
+
+- [ ] Fill in `CONFIG` — at least `nickname`, `specialDate`, `birthday`
+- [ ] Record `voice/for-her.mp3` and set `voiceNote`
+- [ ] Set `whatsapp` so one tap sends a look to you
+- [ ] Add 3–6 real photos to `moments/` (and ask her first)
+- [ ] Connect Supabase if you want her notes delivered
+- [ ] Open the link on **her kind of phone**, on **mobile data**, in **incognito**
+- [ ] Paste the link into WhatsApp and check the preview card shows
+- [ ] Turn on airplane mode and reload — it should still open
+- [ ] Bump `CACHE` and redeploy one last time
+
+Then send it when she is somewhere comfortable, with a voice note telling her not to
+open it until she is settled. Anticipation is most of romance.
+
+---
+
+## Keeping it alive
+
+The graveyard of romantic tech gifts is full of beautiful things that stopped changing on
+week two. Ten minutes a month is the whole trick:
+
+- add one note to `notes`
+- add one photo to `moments`
+- add one line to the letter
+- bump `CACHE`, redeploy
+
+---
 
 ## Tech
-Single-file HTML + vanilla JS + SVG. No build step.
 
-## Deployment
-Static hosting (Netlify).
+Single-file HTML + vanilla JS + hand-authored SVG. No build step, no framework,
+no tracking, no analytics, no accounts. ~157 KB of HTML including everything.
+Offline-capable. Works with JavaScript storage disabled (falls back to memory).
 
-## Author
-Joshua Ochen — built for someone who deserves the world. 🤍
+By Joshua Ochen — for Fatumah, who deserves the world. 🤍
