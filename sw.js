@@ -1,11 +1,11 @@
 /* Fatumah's Closet — service worker
    Network-first for the page (so she always gets your newest letter),
    cache-first for art and fonts (so it works on a bad connection). */
-const CACHE='fatumahs-closet-v5';
+const CACHE='fatumahs-closet-v6';
 const ASSETS=[
   './','./index.html','./manifest.webmanifest','./favicon.svg',
   './icon-192.png','./icon-512.png','./icon-192-maskable.png','./icon-512-maskable.png',
-  './apple-touch-icon.png','./favicon-32.png','./favicon-16.png','./og-image.png'
+  './apple-touch-icon.png','./favicon-32.png','./favicon-16.png','./og-image.png','./art/her-muse.jpg'
 ];
 
 self.addEventListener('install',e=>{
