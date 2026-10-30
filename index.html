@@ -215,25 +215,35 @@ footer.bot .heart-btn:hover{transform:scale(1.18) rotate(-6deg);background:none}
 .stage-arch.muse-arch::after{
   z-index:2;
   background:
-    radial-gradient(80% 46% at 50% 104%,#ff5aa645,transparent 72%),
-    linear-gradient(180deg,#ffe2f24a 0%,transparent 26%,transparent 62%,#2f0e1fbf 100%)
+    radial-gradient(80% 46% at 50% 104%,#ff5aa63d,transparent 72%),
+    linear-gradient(180deg,#ffe2f240 0%,transparent 24%,transparent 68%,#2f0e1f9e 100%)
 }
 .muse-img{
-  width:100%;height:100%;display:block;object-fit:cover;object-position:50% 40%;
+  width:100%;height:100%;display:block;object-fit:cover;object-position:50% 30%;
   filter:saturate(1.04) contrast(1.015);
-  transform-origin:50% 40%;animation:muse-drift 26s ease-in-out infinite
+  transform-origin:50% 30%;animation:muse-drift 26s ease-in-out infinite
 }
 .muse-frame{
   position:absolute;inset:9px;z-index:3;pointer-events:none;
-  border:1px solid #ffe9f2b3;border-radius:222px 222px 18px 18px;
+  border:1px solid #ffe9f2b3;border-radius:201px 201px 17px 17px;
   box-shadow:inset 0 0 0 1px #ff9ec72e,inset 0 0 46px #ffc7e21f
 }
-.muse-arch .stage-caption{color:#fff2f8;text-shadow:0 1px 12px #3b0f26b3;z-index:4}
+.muse-arch .stage-caption{color:#fff2f8;text-shadow:0 1px 12px #3b0f26b3;z-index:5}
 .muse-arch .stage-caption::before{content:"♡";font-size:11px;color:#ffd0e4;text-shadow:none}
-.muse-arch .float-card{background:#fffaf6ef;box-shadow:0 16px 34px #5c17373d;z-index:4}
-@keyframes muse-drift{50%{transform:scale(1.045) translateY(-7px)}}
+.has-muse .float-card{background:#fffaf6f5;box-shadow:0 16px 34px #5c17373d;max-width:156px;padding:8px 11px}
+.has-muse .float-card b{font-size:17px}
+.has-muse .float-card.a{left:-16px;bottom:80px}
+.has-muse .float-card.b{right:-10px;top:44px}
+/* a little gold locket of her face, so the full-length doll still feels close */
+.muse-locket{
+  position:absolute;right:14px;bottom:14px;width:76px;height:76px;z-index:5;border-radius:50%;
+  overflow:hidden;box-shadow:0 0 0 2px #f4dfbd,0 0 0 4px #fffaf3cc,0 14px 26px #2b0a18a6,inset 0 0 0 1px #ffffff40
+}
+.muse-locket img{width:100%;height:100%;object-fit:cover;object-position:50% 50%;display:block}
+.muse-locket::after{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:inset 0 0 14px #3d0f2459;pointer-events:none}
+@keyframes muse-drift{50%{transform:scale(1.03) translateY(-5px)}}
 .float-card{
-  position:absolute;background:#fffdf9e8;border:1px solid #fff;border-radius:16px;padding:9px 13px;
+  position:absolute;z-index:6;background:#fffdf9e8;border:1px solid #fff;border-radius:16px;padding:9px 13px;
   box-shadow:0 14px 30px #a86e7d26;backdrop-filter:blur(8px);font-size:10.5px;line-height:1.5;max-width:180px;
   animation:floaty 7s ease-in-out infinite
 }
@@ -728,8 +738,14 @@ footer.bot .heart-btn:hover{transform:scale(1.18) rotate(-6deg);background:none}
   .hero-actions{justify-content:center}
   .hero h1{font-size:clamp(44px,12vw,64px)}
   .stage-arch{height:min(420px,52svh);max-width:340px;border-radius:180px 180px 24px 24px}
+  .stage-arch.muse-arch{border-radius:180px 180px 24px 24px}
+  .muse-frame{border-radius:161px 161px 15px 15px}
   .float-card.a{left:-4px;bottom:60px}
   .float-card.b{right:-2px;top:30px}
+  .has-muse .float-card{padding:7px 10px}
+  .has-muse .float-card.a{max-width:118px;left:-14px}
+  .has-muse .float-card.b{max-width:130px}
+  .muse-locket{width:62px;height:62px;right:11px;bottom:11px}
   .studio{grid-template-columns:1fr;gap:12px;padding:8px 0}
   .stage{height:min(360px,44svh);min-height:260px;border-radius:150px 150px 22px 22px;position:relative;top:0}
   .stage.stick{position:relative;top:0}
@@ -794,6 +810,7 @@ const CONFIG={
      a real photograph in the big arch. leave it blank and the
      hand-drawn version of her appears instead.                */
   heroPhoto:'./art/her-muse.jpg',
+  heroFace:'./art/her-muse-face.jpg', /* the close-up inside the little gold locket. blank = no locket */
 
   /* her starting look ---------------------------------------- */
   skinTone:'#75452f',
@@ -1775,6 +1792,7 @@ function footer(){
 function homeScreen(){
   const {look:hl,world:hw}=herLook();
   const photo=typeof CONFIG.heroPhoto==='string'?CONFIG.heroPhoto.trim():'';
+  const face=typeof CONFIG.heroFace==='string'?CONFIG.heroFace.trim():'';
   const days=daysTogether();
   const chips=[
     days?`<span class="chip gold"><span class="spark">✦</span> Day ${days} with you</span>`:'',
@@ -1794,16 +1812,17 @@ function homeScreen(){
       </div>
       <div class="hero-meta">${chips}</div>
     </div>
-    <div class="stage-wrap reveal">
+    <div class="stage-wrap reveal${photo?' has-muse':''}">
       ${photo?'<span class="muse-halo" aria-hidden="true"></span>':''}
       <div class="stage-arch${photo?' muse-arch':''}">
         ${photo
-          ?`<img class="muse-img" src="${esc(photo)}" alt="${esc(her)} in the neon pink light — the muse of this closet" width="800" height="1067" fetchpriority="high" decoding="async" onerror="this.hidden=true"><span class="muse-frame" aria-hidden="true"></span>`
+          ?`<img class="muse-img" src="${esc(photo)}" alt="${esc(her)}’s muse — a doll with box braids in a pink suit, under neon pink light" width="800" height="1067" fetchpriority="high" decoding="async" onerror="this.hidden=true"><span class="muse-frame" aria-hidden="true"></span>`
           :avatar(hl,hw)}
-        <div class="float-card b"><b>${esc(him)} says</b>you are the best part of this whole thing</div>
-        <div class="float-card a"><b>${saved.count?'still':'first'} ${saved.count?'iconic':'look'}</b>${saved.count?'the closet missed you':'tap below and start anywhere'}</div>
+        ${photo&&face?`<span class="muse-locket" aria-hidden="true"><img src="${esc(face)}" alt="" width="260" height="260" loading="lazy" decoding="async"></span>`:''}
         <span class="stage-caption">${esc(worlds[hw]?.name||'Coquette Cloud')} · her muse</span>
       </div>
+      <div class="float-card b"><b>${esc(him)} says</b>you are the best part of this whole thing</div>
+      <div class="float-card a"><b>${saved.count?'still':'first'} ${saved.count?'iconic':'look'}</b>${saved.count?'the closet missed you':'tap below and start anywhere'}</div>
     </div>
   </section>
 

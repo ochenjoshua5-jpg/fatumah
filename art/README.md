@@ -1,7 +1,9 @@
 # The muse photograph
 
-`her-muse.jpg` is the photograph in the big arch on the home screen.
-Swap it any time — the game never needs a code change.
+`her-muse.jpg` is the photograph in the big arch on the home screen;
+`her-muse-face.jpg` is the square close-up inside the little gold locket
+at the bottom of the arch. Swap them any time — the game never needs a
+code change.
 
 ## The slot, exactly
 
@@ -10,8 +12,9 @@ Swap it any time — the game never needs a code change.
 | Frame | 3:4 portrait (the arch is 420 × 560 px on desktop) |
 | Export | **800 × 1067 px**, JPEG, quality ~82, under ~250 KB |
 | Better source | 1600 × 2133 px or larger, portrait orientation |
-| Face | sits **30–45 % from the top** (the arch curves over the hair) |
-| Bottom | leave room for the caption and the two floating cards |
+| Face | head in the **top third**, clear of the arch curve. Full-length is welcome |
+| Bottom | leave room for the caption, the locket and the floating cards |
+| Locket | `her-muse-face.jpg`, **260 × 260 px** square, her face filling it |
 | Avoid | text, watermarks, logos, busy edges, harsh blue/green casts |
 
 The site is cream, blush and gold, so warm pink / magenta / peach light
@@ -47,9 +50,10 @@ pink / magenta**, and sort by newest or most relevant.
 
 ## Three ways to get a better one than stock
 
-1. **More from the same shoot.** The current photo is by Roman Vsugon
-   on Unsplash: <https://unsplash.com/photos/a-person-with-pink-hair-wu4UtPdcYb8>.
-   Tap *More like this* and browse his profile — same light, same mood.
+1. **Follow the shoot, not the photo.** Open one you like and tap
+   *More like this*, then browse the photographer's profile — the same
+   session usually has other crops, angles and light. (The earlier muse
+   came from <https://unsplash.com/photos/a-person-with-pink-hair-wu4UtPdcYb8>.)
 2. **Reverse image search.** Put the current photo into Google Lens or
    TinEye and look for the larger, sharper versions of the same look.
 3. **Shoot it yourself.** A black fashion doll, a phone in portrait mode,
@@ -69,8 +73,13 @@ then crop to the face-in-the-upper-third rule above.
 2. Put it anywhere and point `heroPhoto` at it in `CONFIG`:
 
 ```js
-heroPhoto:'./art/my-new-photo.jpg',   // '' brings back the drawn her
+heroPhoto:'./art/my-new-photo.jpg',      // '' brings back the drawn her
+heroFace:'./art/my-new-photo-face.jpg',  // '' hides the gold locket
 ```
+
+The current doll is a full-length shot, so the face crop is taken from
+the same photo: crop a square around her head, about **220 × 220 px** of
+the source, then export at 260 × 260.
 
 Keep the old file until the new one looks right — the service worker
 caches whichever path `heroPhoto` names.
