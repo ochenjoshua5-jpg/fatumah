@@ -35,6 +35,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="preload" as="image" href="art/her-muse.jpg" fetchpriority="high">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Her Closet">
@@ -200,6 +201,37 @@ footer.bot .heart-btn:hover{transform:scale(1.18) rotate(-6deg);background:none}
   background:linear-gradient(180deg,#fff3 0%,transparent 26%,transparent 78%,#4a2f3922 100%)
 }
 .stage-arch svg{width:100%;height:100%;display:block}
+/* the muse portrait — a real photograph in the same arch, neon kept warm */
+.stage-wrap .muse-halo{
+  position:absolute;inset:-30px -22px -16px;border-radius:52% 52% 36px 36px;pointer-events:none;z-index:0;
+  background:radial-gradient(58% 52% at 50% 42%,#ff9ecb9c,#ffc9e11f 62%,transparent 78%);
+  filter:blur(26px)
+}
+.stage-arch.muse-arch{
+  background:radial-gradient(120% 88% at 50% 4%,#ffe9f4,#f4c5da 56%,#de8fb8);
+  border:1px solid #edc6d6;
+  box-shadow:0 34px 64px -30px #a84a7473,0 12px 30px -18px #b3598366,inset 0 0 0 1px #ffe6f2
+}
+.stage-arch.muse-arch::after{
+  z-index:2;
+  background:
+    radial-gradient(80% 46% at 50% 104%,#ff5aa645,transparent 72%),
+    linear-gradient(180deg,#ffe2f24a 0%,transparent 26%,transparent 62%,#2f0e1fbf 100%)
+}
+.muse-img{
+  width:100%;height:100%;display:block;object-fit:cover;object-position:50% 40%;
+  filter:saturate(1.04) contrast(1.015);
+  transform-origin:50% 40%;animation:muse-drift 26s ease-in-out infinite
+}
+.muse-frame{
+  position:absolute;inset:9px;z-index:3;pointer-events:none;
+  border:1px solid #ffe9f2b3;border-radius:222px 222px 18px 18px;
+  box-shadow:inset 0 0 0 1px #ff9ec72e,inset 0 0 46px #ffc7e21f
+}
+.muse-arch .stage-caption{color:#fff2f8;text-shadow:0 1px 12px #3b0f26b3;z-index:4}
+.muse-arch .stage-caption::before{content:"♡";font-size:11px;color:#ffd0e4;text-shadow:none}
+.muse-arch .float-card{background:#fffaf6ef;box-shadow:0 16px 34px #5c17373d;z-index:4}
+@keyframes muse-drift{50%{transform:scale(1.045) translateY(-7px)}}
 .float-card{
   position:absolute;background:#fffdf9e8;border:1px solid #fff;border-radius:16px;padding:9px 13px;
   box-shadow:0 14px 30px #a86e7d26;backdrop-filter:blur(8px);font-size:10.5px;line-height:1.5;max-width:180px;
@@ -757,6 +789,11 @@ const CONFIG={
   hisFullName:'Joshua Ochen',
   herInitial:'F',
   nickname:'',            /* what you actually call her. blank = her name */
+
+  /* her portrait on the home screen --------------------------
+     a real photograph in the big arch. leave it blank and the
+     hand-drawn version of her appears instead.                */
+  heroPhoto:'./art/her-muse.jpg',
 
   /* her starting look ---------------------------------------- */
   skinTone:'#75452f',
@@ -1737,6 +1774,7 @@ function footer(){
 /* ---- home ---- */
 function homeScreen(){
   const {look:hl,world:hw}=herLook();
+  const photo=typeof CONFIG.heroPhoto==='string'?CONFIG.heroPhoto.trim():'';
   const days=daysTogether();
   const chips=[
     days?`<span class="chip gold"><span class="spark">✦</span> Day ${days} with you</span>`:'',
@@ -1757,8 +1795,11 @@ function homeScreen(){
       <div class="hero-meta">${chips}</div>
     </div>
     <div class="stage-wrap reveal">
-      <div class="stage-arch">
-        ${avatar(hl,hw)}
+      ${photo?'<span class="muse-halo" aria-hidden="true"></span>':''}
+      <div class="stage-arch${photo?' muse-arch':''}">
+        ${photo
+          ?`<img class="muse-img" src="${esc(photo)}" alt="${esc(her)} in the neon pink light — the muse of this closet" width="800" height="1067" fetchpriority="high" decoding="async" onerror="this.hidden=true"><span class="muse-frame" aria-hidden="true"></span>`
+          :avatar(hl,hw)}
         <div class="float-card b"><b>${esc(him)} says</b>you are the best part of this whole thing</div>
         <div class="float-card a"><b>${saved.count?'still':'first'} ${saved.count?'iconic':'look'}</b>${saved.count?'the closet missed you':'tap below and start anywhere'}</div>
         <span class="stage-caption">${esc(worlds[hw]?.name||'Coquette Cloud')} · her muse</span>

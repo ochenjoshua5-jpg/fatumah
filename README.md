@@ -16,6 +16,7 @@ a wall of memories, and a place to write back — made by hand, with a very full
 | `sw.js` | Service worker — network-first for the page (so new letters always arrive), cache-first for art. |
 | `manifest.webmanifest` | Makes it installable on her home screen. |
 | `netlify.toml` | Headers, caching, and the `noindex` rule. |
+| `art/her-muse.jpg` | The photograph in the big arch on the home screen. Swap this file (or change `heroPhoto`) any time. |
 | `og-image.png` + icons | The link preview card and home-screen icons. **These were missing before — the WhatsApp preview used to be blank.** |
 | `voice/` | Drop your voice note here (see `voice/README.md`). |
 | `moments/` | Drop your photos here (see `moments/README.md`). |
@@ -37,6 +38,7 @@ const CONFIG={
   herInitial:'F',
   nickname:'',            // ← what you actually call her. blank = her name
 
+  heroPhoto:'./art/her-muse.jpg', // ← the photo in the home-screen arch. '' = the drawn her
   skinTone:'#75452f',
   hairStyle:'box braids',
   hairColor:'#201a1b',
